@@ -155,7 +155,6 @@ int GRAPHO__conectividade(Grapho* g, int origem){
 			break;
 		}
     }
-    free(pi); free(d); free(cor);
     //TODO: fazer impressão conjunto por conjunto, provavelmente vamos fazer BFS dos outros vertices como uma pseudo recursão
     if(totalmenteConectada){
 		printf("a cidade é toda conectada\n\tNão há bairros isolados\n\n");
@@ -165,7 +164,7 @@ int GRAPHO__conectividade(Grapho* g, int origem){
 		
 		printf("\n\t\tconjunto %d: ", conjuntos);
 	    for(int i = 0; i < g->numVertices; i++){
-			if(cor[i] == PRETO){
+			if(cor[i] == PRETO || cor[i] == CINZA){
 				printf("%d ", i+noZero);
 			}
 		}
@@ -179,6 +178,7 @@ int GRAPHO__conectividade(Grapho* g, int origem){
 		}
 		printf("\n\n");
 	}
+    free(pi); free(d); free(cor);
     return totalmenteConectada;
 }
 int GRAPHO__conectividade_semImpressao(Grapho* g, int origem){
@@ -375,22 +375,19 @@ void PRIM__printfAGM(int* pi, int* chave, int numVertices){
 void GRAPHO__ciclovia(Grapho* g){
     int* pi = malloc(sizeof(int)*g->numVertices);
     int* chave = malloc(sizeof(int)*g->numVertices);
-	bool* estaNaAGM = malloc(sizeof(bool)*g->numVertices);
 	for(int i = 0; i < g->numVertices; i++){
 		pi[i] = -1;
 		chave[i] = INF;
-		estaNaAGM[i] = false;
 	}
 	Heap* Q = HEAP__criar(g->numVertices);
-	chave[0] = 0;
-	HEAP__inserir(Q, 0, chave[0]);
+	chave[1] = 0;
+	HEAP__inserir(Q, 1, chave[0]);
 	while(Q->tamanho != 0){
 		ElementoHeap min = HEAP__extrairMin(Q);
-		estaNaAGM[min.vertice] = true;
 		for(No* i = g->adjacencias[min.vertice].prox; i != NULL; i = i->prox){
 			int vizinho = i->chave;
 			int custo = i->custo;
-			if(!estaNaAGM[vizinho] && custo < chave[vizinho]){
+			if(custo < chave[vizinho]){
 				chave[vizinho] = custo;
 				pi[vizinho] = min.vertice;
 				if(HEAP__encontrou(Q, vizinho)){
@@ -402,7 +399,7 @@ void GRAPHO__ciclovia(Grapho* g){
 		}
 	}
 	PRIM__printfAGM(pi, chave, g->numVertices);
-	free(estaNaAGM); free(pi); free(chave); free(Q->elementos); free(Q);
+	free(pi); free(chave); free(Q->elementos); free(Q);
 }
 
 //imprimir informações para testes ràpidos
@@ -414,6 +411,7 @@ void GRAPHO__info(Grapho* g){
         GRAPHO__ciclovia(g);
     else
         printf("a cidade não é conectada.\n\n");
+    printf("\n");
 }
 
 void menu(Grapho* g){
